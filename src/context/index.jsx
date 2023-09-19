@@ -30,18 +30,70 @@ const StateProvider = ({ children }) => {
         }
     }
 
+    const getCampaigns = async () => {
+        try {
+            const campaigns = contract.call('getAllCampaigns')
+            console.log(campaigns)
+
+            const updatedCampaigns = campaigns.map((campaign, i) => ({
+                owner: campaign.owner,
+                title: campaign.title,
+                description: campaign.description,
+                target: ethers.utils.formatEther(campaign.target.toString()),
+                deadline: campaign.deadline.toNumber(),
+                amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
+                image: campaign.image,
+                pId: i
+
+            }))
+
+            return updatedCampaigns
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const getUserCampaigns = async () => {
+        try {
+
+            const allCampaigns = await getCampaigns()
+
+            const userCampaign = allCampaigns.filter((campaign) => campaign.owner === address)
+
+            return userCampaign;
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const donate=async(pId,amount)=>{
+        try{
+
+            const data=await contract.call('donateToCampaign',[pId],{value:ethers.utils.parseEther(amount)})
+
+            return data;
+
+        }catch(err){
+            console.log(err)
+        }
+    }
     return (
         <StateContext.Provider
-        value={{
-            address,
-            createCampaign:publishCampaign,
-            contract,
-            connect
-        }}
+            value={{
+                address,
+                createCampaign: publishCampaign,
+                contract,
+                connect,
+                getCampaigns,
+                getUserCampaigns,
+                donate
+            }}
         >
             {children}
         </StateContext.Provider>
     )
 }
 
-export const useStateContext=()=>useContext(StateContext)
+export const useStateContext = () => useContext(StateContext)
