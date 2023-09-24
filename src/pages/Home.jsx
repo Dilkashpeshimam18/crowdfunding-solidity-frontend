@@ -8,20 +8,34 @@ const Home = () => {
   const [campaigns, setCampaigns] = useState([]);
 
   const { address, contract, getCampaigns } = useStateContext();
-
+  
   const fetchCampaigns = async () => {
     setIsLoading(true);
-    const data = await getCampaigns();
-    setCampaigns(data);
-    setIsLoading(false);
+    try {
+      const data = await getCampaigns();
+      if (data) {
+        setCampaigns(data);
+        setIsLoading(false);
+      } else {
+        console.log('No campaign data received.');
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      setIsLoading(false);
+    }
   }
 
   useEffect(() => {
-    if(contract) fetchCampaigns();
-  }, [address, contract]);
+    console.log(contract)
+    console.log(address)
+   if (contract) fetchCampaigns();
+    
+
+}, [address, contract]);
 
   return (
-    <DisplayCampaigns 
+    <DisplayCampaigns
       title="All Campaigns"
       isLoading={isLoading}
       campaigns={campaigns}
