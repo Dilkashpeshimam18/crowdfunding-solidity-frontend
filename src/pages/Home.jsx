@@ -1,38 +1,71 @@
 import React, { useState, useEffect } from 'react'
+import { useAddress, useContract, useContractRead } from '@thirdweb-dev/react'
+import { ethers } from "ethers";
 
 import { DisplayCampaigns } from '../components';
-import { useStateContext } from '../context'
 
 const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
+  const { contract } = useContract('0xD78681E6Bb323791c3e27667E3B9f6C99ea87225')
+  const address = useAddress();
+  const { data, error } = useContractRead(contract, "getAllCampaigns", []);
 
-  const { address, contract, getCampaigns } = useStateContext();
-  
-  const fetchCampaigns = async () => {
-    setIsLoading(true);
+  const getCampaigns = (data) => {
     try {
-      const data = await getCampaigns();
       if (data) {
-        setCampaigns(data);
-        setIsLoading(false);
+
+        const updatedCampaigns = data.map((campaign, i) => ({
+          owner: campaign.owner,
+          title: campaign.title,
+          description: campaign.description,
+          target: ethers.utils.formatEther(campaign.target.toString()),
+          deadline: campaign.deadline.toNumber(),
+          amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
+          image: campaign.image,
+          pId: i
+
+        }))
+
+
+        return updatedCampaigns
       } else {
-        console.log('No campaign data received.');
-        setIsLoading(false)
+        return [];
       }
-    } catch (error) {
-      console.error('Error fetching campaigns:', error);
-      setIsLoading(false);
+
+
+    } catch (err) {
+      console.log(err);
+      return [];
     }
   }
 
-  useEffect(() => {
-    console.log(contract)
-    console.log(address)
-   if (contract) fetchCampaigns();
-    
 
-}, [address, contract]);
+  useEffect(() => {
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+    
+        if (!error) {
+          const updatedCampaigns = getCampaigns(data);
+          setCampaigns(updatedCampaigns);
+          setIsLoading(false);
+        } else {
+          console.log('Error fetching campaign data:', error);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+        setIsLoading(false);
+      }
+    };
+
+    if (contract && address) {
+      fetchData();
+    }
+
+  }, [address, contract, data, error]);
 
   return (
     <DisplayCampaigns

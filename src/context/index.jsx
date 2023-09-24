@@ -1,5 +1,5 @@
 import React, { useContext, createContext } from "react";
-import { useAddress, useMetamask, useContract, useContractWrite, useContractRead } from '@thirdweb-dev/react'
+import { useAddress, useMetamask, useContract,  useContractRead } from '@thirdweb-dev/react'
 import { ethers } from "ethers";
 
 const StateContext = createContext()
@@ -9,9 +9,35 @@ export const StateContextProvider = ({ children }) => {
     const connect = useMetamask()
     const address = useAddress()
 
-    const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign')
-    const { data, isLoading, error } = useContractRead(contract, "getAllCampaigns", [])
+    const { data, error } = useContractRead(contract, "getAllCampaigns", [])
 
+    const getCampaigns = async () => {
+      try {
+        if (data) {
+  
+          const updatedCampaigns = data.map((campaign, i) => ({
+            owner: campaign.owner,
+            title: campaign.title,
+            description: campaign.description,
+            target: ethers.utils.formatEther(campaign.target.toString()),
+            deadline: campaign.deadline.toNumber(),
+            amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
+            image: campaign.image,
+            pId: i
+  
+          }))
+  
+  
+          return updatedCampaigns
+        } else {
+          return [];
+        }
+  
+  
+      } catch (err) {
+        console.log(err)
+      }
+    }
 
     const publishCampaign = async (form) => {
         try {
@@ -33,33 +59,7 @@ export const StateContextProvider = ({ children }) => {
         }
     }
 
-    const getCampaigns = async () => {
-        try {
-            if (data) {
-                const campaigns = await data
-                const updatedCampaigns = campaigns.map((campaign, i) => ({
-                    owner: campaign.owner,
-                    title: campaign.title,
-                    description: campaign.description,
-                    target: ethers.utils.formatEther(campaign.target.toString()),
-                    deadline: campaign.deadline.toNumber(),
-                    amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
-                    image: campaign.image,
-                    pId: i
-
-                }))
-
-
-                return updatedCampaigns
-            } else {
-                return null;
-            }
-
-
-        } catch (err) {
-            console.log(err)
-        }
-    }
+  
 
     const getUserCampaigns = async () => {
         try {
