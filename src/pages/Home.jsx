@@ -61,7 +61,7 @@ const Home = () => {
       }
     };
 
-    if (contract && address) {
+    if (contract) {
       fetchData();
     }
 

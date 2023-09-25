@@ -1,4 +1,4 @@
-import React, { useContext, createContext } from "react";
+import React, { useContext, createContext,useState } from "react";
 import { useAddress, useMetamask, useContract,  useContractRead } from '@thirdweb-dev/react'
 import { ethers } from "ethers";
 
@@ -8,6 +8,7 @@ export const StateContextProvider = ({ children }) => {
     const { contract } = useContract('0xD78681E6Bb323791c3e27667E3B9f6C99ea87225')
     const connect = useMetamask()
     const address = useAddress()
+    const [campaigns, setCampaigns] = useState([]);
 
     const { data, error } = useContractRead(contract, "getAllCampaigns", [])
 
@@ -116,7 +117,9 @@ export const StateContextProvider = ({ children }) => {
                 getCampaigns,
                 getUserCampaigns,
                 donate,
-                getDonations
+                getDonations,
+                campaigns,
+                setCampaigns
             }}
         >
             {children}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
 
 import { useStateContext } from '../context';
 import { CountBox, CustomButton, Loader } from '../components';
@@ -20,7 +19,6 @@ const CampaignDetails = () => {
 
   const fetchDonators = async () => {
     const data = await getDonations(state.pId);
-    console.log('donator data>>>',data)
 
     setDonators(data);
   }
@@ -30,12 +28,17 @@ const CampaignDetails = () => {
   }, [contract, address])
 
   const handleDonate = async () => {
-    setIsLoading(true);
+    if(address){
+      setIsLoading(true);
 
-    await donate(state.pId, amount); 
-
-    navigate('/')
-    setIsLoading(false);
+      await donate(state.pId, amount); 
+  
+      navigate('/')
+      setIsLoading(false);
+    }else{
+      alert('Sign in with Metamask first!')
+    }
+  
   }
 
   return (
