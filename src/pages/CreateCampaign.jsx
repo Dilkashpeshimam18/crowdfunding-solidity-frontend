@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 
 import { useStateContext } from '../context';
-import { money } from '../assets';
 import { CustomButton, FormField, Loader } from '../components';
 import { checkIfImage } from '../utils';
 
@@ -17,27 +16,47 @@ const CreateCampaign = () => {
     description: '',
     target: '',
     deadline: '',
-    image: ''
+    image: '',
+    deadlineError:''
   });
 
   const handleFormFieldChange = (fieldName, e) => {
-    setForm({ ...form, [fieldName]: e.target.value })
-  }
+    if(fieldName=='deadline'){
+      const inputValue = e.target.value;
+      const currentDate = new Date();
+      const selectedDate = new Date(inputValue);
+    
+      if (selectedDate <= currentDate) {
+        setForm({ ...form, [fieldName]: inputValue, deadlineError: 'Please select a future date' });
+      } else {
+        setForm({ ...form, [fieldName]: inputValue, deadlineError: '' });
+      }
+    }else{
+      setForm({ ...form, [fieldName]: e.target.value })
+
+    }
+   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+   
     if (address) {
-      checkIfImage(form.image, async (exists) => {
-        if (exists) {
-          setIsLoading(true)
-          await createCampaign({ ...form, target: ethers.utils.parseUnits(form.target, 18) })
-          setIsLoading(false);
-          navigate('/');
-        } else {
-          alert('Provide valid image URL')
-          setForm({ ...form, image: '' });
-        }
-      })
+      if(form.deadlineError !=''){
+        alert('Please add a future date')
+      }else{
+        checkIfImage(form.image, async (exists) => {
+          if (exists) {
+            setIsLoading(true)
+            await createCampaign({ ...form, target: ethers.utils.parseUnits(form.target, 18) })
+            setIsLoading(false);
+            navigate('/');
+          } else {
+            alert('Provide valid image URL')
+            setForm({ ...form, image: '' });
+          }
+        })
+      }
+ 
     } else {
       alert('Sign in with Metamask first!')
 
@@ -92,6 +111,7 @@ const CreateCampaign = () => {
             inputType="date"
             value={form.deadline}
             handleChange={(e) => handleFormFieldChange('deadline', e)}
+            error={form.deadlineError}
           />
         </div>
 
