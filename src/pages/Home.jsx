@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useAddress, useContract, useContractRead } from '@thirdweb-dev/react'
 import { ethers } from "ethers";
-
+import {contractAbi} from '../constant' 
 import { DisplayCampaigns } from '../components';
 
 const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
-  const { contract } = useContract('0xD78681E6Bb323791c3e27667E3B9f6C99ea87225')
+  const { contract } = useContract('0x0B575A6ad72586290f96cb734449c45cE21c2f49',contractAbi)
   const address = useAddress();
   const { data, error } = useContractRead(contract, "getAllCampaigns", []);
 

@@ -1,46 +1,59 @@
-import React, { useContext, createContext,useState } from "react";
-import { useAddress, useMetamask, useContract,  useContractRead } from '@thirdweb-dev/react'
+import React, { useContext, createContext, useState, useEffect } from "react";
+import { useAddress, useMetamask, useContract, useContractRead } from '@thirdweb-dev/react'
 import { ethers } from "ethers";
-
+import { contractAbi } from '../constant'
 const StateContext = createContext()
 
 export const StateContextProvider = ({ children }) => {
-    const { contract } = useContract('0xD78681E6Bb323791c3e27667E3B9f6C99ea87225')
-    const connect = useMetamask()
-    const address = useAddress()
+    const { contract, isLoading, error:contractError } = useContract(
+        "0x0B575A6ad72586290f96cb734449c45cE21c2f49",
+        contractAbi,
+    );
+    const connect = useMetamask();
+    const address = useAddress();
     const [campaigns, setCampaigns] = useState([]);
 
-    const { data, error } = useContractRead(contract, "getAllCampaigns", [])
+    useEffect(() => {
+        if (contractError) {
+            console.error("Contract initialization error:", contractError);
+        }
+    }, [contractError]);
+    const { data, error: readError } = useContractRead(contract, "getAllCampaigns", []);
+
+    if (readError) {
+        console.error("Error reading from contract:", readError);
+    }
 
     const getCampaigns = async () => {
-      try {
-        if (data) {
-  
-          const updatedCampaigns = data.map((campaign, i) => ({
-            owner: campaign.owner,
-            title: campaign.title,
-            description: campaign.description,
-            target: ethers.utils.formatEther(campaign.target.toString()),
-            deadline: campaign.deadline.toNumber(),
-            amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
-            image: campaign.image,
-            pId: i
-  
-          }))
-  
-  
-          return updatedCampaigns
-        } else {
-          return [];
+        try {
+            if (data) {
+
+                const updatedCampaigns = data.map((campaign, i) => ({
+                    owner: campaign.owner,
+                    title: campaign.title,
+                    description: campaign.description,
+                    target: ethers.utils.formatEther(campaign.target.toString()),
+                    deadline: campaign.deadline.toNumber(),
+                    amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
+                    image: campaign.image,
+                    pId: i
+
+                }))
+
+
+                return updatedCampaigns
+            } else {
+                return [];
+            }
+
+
+        } catch (err) {
+            console.log(err)
         }
-  
-  
-      } catch (err) {
-        console.log(err)
-      }
     }
 
     const publishCampaign = async (form) => {
+  
         try {
 
             const data = await contract.call('createCampaign',
@@ -59,8 +72,6 @@ export const StateContextProvider = ({ children }) => {
             console.log(err)
         }
     }
-
-  
 
     const getUserCampaigns = async () => {
         try {
